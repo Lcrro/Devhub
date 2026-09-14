@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build release archives
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -eu
+          mkdir -p dist tmp
+          build() {
+            os="$1"; arch="$2"; ext="$3"
+            name="devhub-${VERSION}-${os}-${arch}"
+            binary="devhub${ext}"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -ldflags "-s -w -X main.version=${VERSION}" -o "tmp/${binary}" ./cmd/devhub
+            if [ "$os" = "windows" ]; then
+              (cd tmp && zip -q "../dist/${name}.zip" "$binary")
+            else
+              tar -C tmp -czf "dist/${name}.tar.gz" "$binary"
+            fi
+            rm -f "tmp/${binary}"
+          }
+          build linux amd64 ""
+          build linux arm64 ""
+          build darwin amd64 ""
+          build darwin arm64 ""
+          build windows amd64 ".exe"
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/* --generate-notes --title "DevHub ${{ github.ref_name }}"

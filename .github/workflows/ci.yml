@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Format check
+        run: test -z "$(gofmt -l ./cmd ./internal)"
+      - name: Test
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+
+  cross-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            output: devhub-linux-amd64
+          - goos: linux
+            goarch: arm64
+            output: devhub-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            output: devhub-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            output: devhub-darwin-arm64
+          - goos: windows
+            goarch: amd64
+            output: devhub-windows-amd64.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: go build -o "dist/${{ matrix.output }}" ./cmd/devhub

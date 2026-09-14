@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>DevHub - Local services, one home</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="grain"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="DevHub home">
+      <span class="brand-mark"><span></span><span></span><span></span></span>
+      <span>DevHub</span>
+    </a>
+    <div class="top-actions">
+      <label class="search-wrap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+        <input id="search" type="search" placeholder="Search projects, ports, paths..." autocomplete="off">
+      </label>
+      <button id="scanButton" class="icon-button" title="Scan now" aria-label="Scan now">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7"/></svg>
+      </button>
+      <button id="settingsButton" class="icon-button" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.31.76.6 1 .3.27.69.4 1.1.4H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+      </button>
+      <button id="addButton" class="primary-button">Add project</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow"><span class="live-pulse"></span> Local development command center</div>
+        <h1>Every local service.<br><em>Finally in one place.</em></h1>
+        <p>DevHub discovers your running web apps, remembers where they live, captures visual previews, and gives every project a single home.</p>
+      </div>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="toolbar">
+      <nav class="tabs" id="tabs" aria-label="Project filters">
+        <button class="tab active" data-filter="all">All <span id="countAll">0</span></button>
+        <button class="tab" data-filter="running">Running <span id="countRunning">0</span></button>
+        <button class="tab" data-filter="stopped">Stopped <span id="countStopped">0</span></button>
+        <button class="tab" data-filter="discovered">Discovered <span id="countDiscovered">0</span></button>
+      </nav>
+      <div class="scan-status" id="scanStatus">Watching local ports</div>
+    </section>
+
+    <section class="project-grid" id="projectGrid" aria-live="polite"></section>
+    <section class="empty-state hidden" id="emptyState">
+      <div class="empty-orbit"><span></span><span></span><span></span></div>
+      <h2>No services found yet</h2>
+      <p>Start a local web app and DevHub will discover it automatically, or add a project manually.</p>
+      <button class="secondary-button" id="emptyAdd">Add a project</button>
+    </section>
+  </main>
+
+  <dialog id="addDialog" class="modal">
+    <form id="addForm" method="dialog">
+      <div class="modal-head"><div><span class="kicker">New project</span><h2>Add to DevHub</h2></div><button class="close-button" value="cancel" type="button" data-close="addDialog">&times;</button></div>
+      <label>Project name<input name="name" required placeholder="My app"></label>
+      <label>Project directory<input name="root" placeholder="/Users/me/Code/my-app"></label>
+      <label>Start command<input name="command" placeholder="pnpm run dev"></label>
+      <label>Local URL <span>optional</span><input name="url" type="url" placeholder="http://127.0.0.1:3000"></label>
+      <div class="modal-actions"><button type="button" class="ghost-button" data-close="addDialog">Cancel</button><button type="submit" class="primary-button">Save project</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog" class="modal compact">
+    <form id="settingsForm" method="dialog">
+      <div class="modal-head"><div><span class="kicker">Preferences</span><h2>Discovery settings</h2></div><button class="close-button" value="cancel" type="button" data-close="settingsDialog">&times;</button></div>
+      <label class="switch-row"><span><strong>Auto remember</strong><small>Keep high-confidence services after they stop.</small></span><input name="autoRemember" type="checkbox"><i></i></label>
+      <label class="switch-row"><span><strong>Auto capture covers</strong><small>Refresh previews at most once every 24 hours.</small></span><input name="autoCapture" type="checkbox"><i></i></label>
+      <label>Scan interval <span>seconds</span><input name="scanIntervalSeconds" type="number" min="2" max="60" value="5"></label>
+      <div class="data-note">DevHub only listens on loopback. Project state and screenshots stay on this computer.</div>
+      <div class="modal-actions"><button type="button" class="ghost-button" data-close="settingsDialog">Cancel</button><button type="submit" class="primary-button">Save settings</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="modal detail-modal">
+    <div id="detailContent"></div>
+  </dialog>
+
+  <div class="toast-stack" id="toastStack"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

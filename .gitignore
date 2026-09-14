@@ -1,0 +1,20 @@
+# Build output
+/devhub
+/dist/
+*.exe
+*.test
+*.out
+
+# Local editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Local DevHub state if --data-dir points into the repo
+state.json
+covers/
+logs/
+
+# Temporary files
+*.tmp
+*.log
